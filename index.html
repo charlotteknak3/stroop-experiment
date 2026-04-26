@@ -1,7 +1,7 @@
-<!DOCTYPE html>    
+<!DOCTYPE html>
 <html>
 <head>
-  <title>Stroop Experiment</title>
+  <title>Color-Gender Reaction Study</title>
   <style>
     body {
       text-align: center;
@@ -15,14 +15,6 @@
     }
     #startScreen {
       margin-top: 20%;
-    }
-    input {
-      font-size: 18px;
-      padding: 5px;
-    }
-    button {
-      font-size: 18px;
-      padding: 5px 10px;
     }
   </style>
 </head>
@@ -52,7 +44,8 @@ const words = [
   {text: "groom", gender: "m"}
 ];
 
-const colors = ["red", "pink", "green", "gray"];
+// NOW includes gray
+const colors = ["red", "pink", "gray"];
 
 let trials = [];
 let currentTrial = 0;
@@ -125,7 +118,9 @@ function handleResponse(e) {
   document.removeEventListener("keydown", handleResponse);
 
   currentTrial++;
-  nextTrial();
+
+  // SMALL DELAY BETWEEN TRIALS (300ms)
+  setTimeout(nextTrial, 300);
 }
 
 function downloadCSV() {
