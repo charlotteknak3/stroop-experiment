@@ -1,0 +1,149 @@
+<!DOCTYPE html>    
+<html>
+<head>
+  <title>Stroop Experiment</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+      background-color: black;
+      color: white;
+    }
+    #word {
+      font-size: 50px;
+      margin-top: 20%;
+    }
+    #startScreen {
+      margin-top: 20%;
+    }
+    input {
+      font-size: 18px;
+      padding: 5px;
+    }
+    button {
+      font-size: 18px;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h2>Enter Participant ID</h2>
+  <input type="text" id="participantID" placeholder="e.g. 101">
+  <br><br>
+  <button onclick="startExperiment()">Start</button>
+</div>
+
+<div id="experiment" style="display:none;">
+  <h2>Press F for Feminine, M for Masculine</h2>
+  <div id="word"></div>
+</div>
+
+<script>
+const words = [
+  {text: "mother", gender: "f"},
+  {text: "sister", gender: "f"},
+  {text: "queen", gender: "f"},
+  {text: "bride", gender: "f"},
+  {text: "father", gender: "m"},
+  {text: "brother", gender: "m"},
+  {text: "king", gender: "m"},
+  {text: "groom", gender: "m"}
+];
+
+const colors = ["red", "pink", "green", "gray"];
+
+let trials = [];
+let currentTrial = 0;
+let startTime;
+let results = [];
+let participantID = "";
+
+// Create trials
+words.forEach(word => {
+  colors.forEach(color => {
+    trials.push({ ...word, color });
+  });
+});
+
+// Shuffle trials
+trials.sort(() => Math.random() - 0.5);
+
+function startExperiment() {
+  participantID = document.getElementById("participantID").value;
+
+  if (participantID === "") {
+    alert("Please enter an ID");
+    return;
+  }
+
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("experiment").style.display = "block";
+
+  nextTrial();
+}
+
+function nextTrial() {
+  if (currentTrial >= trials.length) {
+    document.getElementById("word").innerText = "Done!";
+    downloadCSV();
+    return;
+  }
+
+  let trial = trials[currentTrial];
+  let wordDiv = document.getElementById("word");
+
+  wordDiv.innerText = trial.text;
+  wordDiv.style.color = trial.color;
+
+  startTime = performance.now();
+
+  document.addEventListener("keydown", handleResponse);
+}
+
+function handleResponse(e) {
+  if (e.key !== "f" && e.key !== "m") return;
+
+  let rt = performance.now() - startTime;
+  let trial = trials[currentTrial];
+
+  let correct =
+    (e.key === "f" && trial.gender === "f") ||
+    (e.key === "m" && trial.gender === "m");
+
+  results.push({
+    id: participantID,
+    word: trial.text,
+    gender: trial.gender,
+    color: trial.color,
+    response: e.key,
+    rt: Math.round(rt),
+    correct: correct
+  });
+
+  document.removeEventListener("keydown", handleResponse);
+
+  currentTrial++;
+  nextTrial();
+}
+
+function downloadCSV() {
+  let csv = "id,word,gender,color,response,rt,correct\n";
+
+  results.forEach(r => {
+    csv += `${r.id},${r.word},${r.gender},${r.color},${r.response},${r.rt},${r.correct}\n`;
+  });
+
+  let blob = new Blob([csv], { type: "text/csv" });
+  let url = URL.createObjectURL(blob);
+
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "stroop_results.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
